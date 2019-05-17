@@ -1511,6 +1511,16 @@ socket_server_poll(struct socket_server *ss, struct socket_message * result, int
 				return SOCKET_ERR;
 			}
 			if(e->eof) {
+				if (s->protocol == PROTOCOL_TCP) {
+					int type = forward_message_tcp(ss, s, &l, result);
+					if (type != -1) {
+						if (type == SOCKET_DATA) {
+							// try to dispatch eof message next step
+							--ss->event_index;
+						}
+						return type;
+					}
+				}
 				force_close(ss, s, &l, result);
 				return SOCKET_CLOSE;
 			}
